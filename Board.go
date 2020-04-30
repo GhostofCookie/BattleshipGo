@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strconv"
 	"unicode"
 )
 
@@ -18,6 +19,7 @@ func MakeCoord(x rune, y int) Coord {
 // upon it.
 type Slot struct {
 	shipRef *Ship
+	mark    string
 }
 
 // Board is the game board which houses all of the ships.
@@ -40,6 +42,7 @@ func NewBoard() *Board {
 func (b *Board) SetSlot(slot Coord, shipRef *Ship) {
 	temp := new(Slot)
 	temp.shipRef = shipRef
+	temp.mark = "○"
 	b.slots[slot.x][slot.y] = temp
 }
 
@@ -51,8 +54,33 @@ func (b *Board) PingSlot(target Coord) bool {
 		if pingedShip != nil {
 			pingedShip.Hit()
 			slot.shipRef = nil
+			slot.mark = "\033[1;31m■\033[0m"
 			return true
 		}
+	} else {
+		b.slots[target.x][target.y] = new(Slot)
 	}
+	b.slots[target.x][target.y].mark = "\033[1;37m■\033[0m"
 	return false
+}
+
+// Output outputs the board.
+func (b *Board) Output(showShips bool) string {
+	out := "  A B C D E F G H\n"
+	for i, arr := range b.slots {
+		out += strconv.Itoa(i)
+		for _, slot := range arr {
+			if slot != nil {
+				if slot.shipRef != nil && showShips {
+					out += " █"
+				} else {
+					out += " " + slot.mark
+				}
+			} else {
+				out += " ○"
+			}
+		}
+		out += "\n"
+	}
+	return out
 }
